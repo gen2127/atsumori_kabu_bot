@@ -6,7 +6,7 @@ from tabulate import tabulate
 import matplotlib.pyplot as plt
 
 # 自分のBotのアクセストークンに置き換えてください
-TOKEN = 'NjkzODM5NzkyNjYzOTUzNDQ5.XoH_Rg.lm8suNUlOiXrp35my6KQYeg6B0E'
+TOKEN = os.environ['DISCORD_BOT_ATSUMORIKABU_TOKEN']
 # 接続に必要なオブジェクトを生成
 client = discord.Client()
 

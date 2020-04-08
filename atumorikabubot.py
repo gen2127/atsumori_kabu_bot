@@ -4,6 +4,7 @@ import datetime
 import re
 from tabulate import tabulate
 import matplotlib.pyplot as plt
+import os
 
 # 自分のBotのアクセストークンに置き換えてください
 TOKEN = os.environ['DISCORD_BOT_ATSUMORIKABU_TOKEN']

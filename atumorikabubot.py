@@ -6,9 +6,13 @@ from tabulate import tabulate
 import matplotlib.pyplot as plt
 import os
 import pickle
+import psycopg2
+import psycopg2.extras
 
 # 自分のBotのアクセストークンに置き換えてください
 TOKEN = os.environ['DISCORD_BOT_ATSUMORIKABU_TOKEN']
+
+DATABASE_URL = os.environ['DATABASE_URL']
 # 接続に必要なオブジェクトを生成
 client = discord.Client()
 
@@ -19,15 +23,7 @@ datapath = 'data.pickle'
 async def on_ready():
     # カブ価データを読み込む
     global d
-    try:
-        with open(datapath, mode='rb') as f:
-            d = pickle.load(f)
-    except FileNotFoundError:
-        with open(datapath, mode='wb') as f:
-            pass
-        d = {}
-    except EOFError:
-        d = {}
+    
 
     # 起動したらターミナルにログイン通知が表示される
     print('ログインしました')
@@ -40,25 +36,36 @@ async def on_message(message):
         return
     # 「/kabu (カブ価）」と発言したら発言者とカブ価を記録する処理
     if '/kabu' in message.content :
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        d = {}
         ampm = ''
         if datetime.datetime.now().hour < 12 :
             ampm = 'AM'
         else :
             ampm = 'PM'
+        sql = "SELECT * FROM test WHERE date = '"+datetime.datetime.now().strftime('%Y/%m/%d')+ampm+"';"
+        cur.execute(sql)
+        d = dict(cur.fetchall())
         num = int(re.sub("\\D","",message.content))
-        if datetime.datetime.now().strftime('%Y/%m/%d')+ampm not in d :
-            d.setdefault(datetime.datetime.now().strftime('%Y/%m/%d')+ampm,{})
 
-        if message.author.name not in d[datetime.datetime.now().strftime('%Y/%m/%d')+ampm] :
-            d[datetime.datetime.now().strftime('%Y/%m/%d')+ampm].setdefault(message.author.name,num)    
-        d[datetime.datetime.now().strftime('%Y/%m/%d')+ampm][message.author.name] = num
-        with open(datapath, mode='wb') as f:
-            pickle.dump(d, f)
+        if message.author.name not in d :
+            d.setdefault(message.author.name,num)
+            sql = "INSERT INTO test values('"+datetime.datetime.now().strftime('%Y/%m/%d')+ampm+"','"+message.author.name+"',"+str(num)+");"
+            cur.execute(sql)
+
+        d[message.author.name] = num
+        sql = "UPDATE test SET val = "+str(num)+"WHERE name = '"+message.author.name+"';"
+        cur.execute(sql)
         #headers = ["header1", "header2"]
-        table = list(d[datetime.datetime.now().strftime('%Y/%m/%d')+ampm].items())
+        table = list(d.items())
         table.sort(key=lambda x:x[1],reverse=True)
         await message.channel.send(tabulate(table,tablefmt="plain"))
+        conn.commit()
+        cur.close()
+        conn.close()
     print(d)
+    """
     if '/graph' in message.content :
         days = list(d.keys())
         d_graph = {}
@@ -76,6 +83,7 @@ async def on_message(message):
         plt.legend() # おそらく日本語で文字化けするがサーバのOSがわからないので対応できず
         fig.savefig('graph.png')
         await message.channel.send(file = discord.File('graph.png'))
+    """
 
 
 

@@ -44,18 +44,18 @@ async def on_message(message):
             ampm = 'AM'
         else :
             ampm = 'PM'
-        sql = "SELECT * FROM test WHERE date = '"+datetime.datetime.now().strftime('%Y/%m/%d')+ampm+"';"
+        sql = "SELECT * FROM kabu WHERE date = '"+datetime.datetime.now().strftime('%Y/%m/%d')+ampm+"';"
         cur.execute(sql)
         d = dict(cur.fetchall())
         num = int(re.sub("\\D","",message.content))
 
         if message.author.name not in d :
             d.setdefault(message.author.name,num)
-            sql = "INSERT INTO test values('"+datetime.datetime.now().strftime('%Y/%m/%d')+ampm+"','"+message.author.name+"',"+str(num)+");"
+            sql = "INSERT INTO kabu values('"+datetime.datetime.now().strftime('%Y/%m/%d')+ampm+"','"+message.author.name+"',"+str(num)+");"
             cur.execute(sql)
 
         d[message.author.name] = num
-        sql = "UPDATE test SET val = "+str(num)+"WHERE name = '"+message.author.name+"';"
+        sql = "UPDATE kabu SET val = "+str(num)+"WHERE name = '"+message.author.name+"';"
         cur.execute(sql)
         #headers = ["header1", "header2"]
         table = list(d.items())

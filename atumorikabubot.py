@@ -45,7 +45,7 @@ async def on_message(message):
             ampm = 'AM'
         else :
             ampm = 'PM'
-        sql = "SELECT * FROM kabu WHERE date = '"+datetime.datetime.now().strftime('%Y/%m/%d')+ampm+"';"
+        sql = "SELECT name,val FROM kabu WHERE date = '"+datetime.datetime.now().strftime('%Y/%m/%d')+ampm+"';"
         cur.execute(sql)
         d = dict(cur.fetchall())
         num = int(re.sub("\\D","",message.content))

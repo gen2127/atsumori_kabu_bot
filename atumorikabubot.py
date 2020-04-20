@@ -11,6 +11,8 @@ import psycopg2.extras
 
 # 自分のBotのアクセストークンに置き換えてください
 TOKEN = os.environ['DISCORD_BOT_ATSUMORIKABU_TOKEN']
+
+DATABASE_URL = os.environ['DATABASE_URL']
 # 接続に必要なオブジェクトを生成
 client = discord.Client()
 
@@ -34,7 +36,7 @@ async def on_message(message):
         return
     # 「/kabu (カブ価）」と発言したら発言者とカブ価を記録する処理
     if '/kabu' in message.content :
-        conn = psycopg2.connect("dbname=test_atsumori user=ryohei")
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         d = {}
         ampm = ''
@@ -59,6 +61,9 @@ async def on_message(message):
         table = list(d.items())
         table.sort(key=lambda x:x[1],reverse=True)
         await message.channel.send(tabulate(table,tablefmt="plain"))
+        conn.commit()
+        cur.close()
+        conn.close()
     print(d)
     """
     if '/graph' in message.content :

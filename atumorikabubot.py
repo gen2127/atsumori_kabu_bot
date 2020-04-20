@@ -65,7 +65,7 @@ async def on_message(message):
         conn.commit()
         cur.close()
         conn.close()
-    print(d)
+        print(d)
     """
     if '/graph' in message.content :
         days = list(d.keys())

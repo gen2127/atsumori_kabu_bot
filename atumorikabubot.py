@@ -18,11 +18,12 @@ client = discord.Client()
 
 datapath = 'data.pickle'
 
+d = {}
+
 # 起動時に動作する処理
 @client.event
 async def on_ready():
     # カブ価データを読み込む
-    global d
     
 
     # 起動したらターミナルにログイン通知が表示される

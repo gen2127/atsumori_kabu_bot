@@ -18,11 +18,10 @@ client = discord.Client()
 
 datapath = 'data.pickle'
 
-d = {}
-
 # 起動時に動作する処理
 @client.event
 async def on_ready():
+    global d = {}
     # カブ価データを読み込む
     
 
@@ -65,9 +64,11 @@ async def on_message(message):
         conn.commit()
         cur.close()
         conn.close()
-        print(d)
-    """
+    print(d)
+    
     if '/graph' in message.content :
+        await message.channel.send('test')
+        """
         days = list(d.keys())
         d_graph = {}
         for i in days :
@@ -84,7 +85,7 @@ async def on_message(message):
         plt.legend() # おそらく日本語で文字化けするがサーバのOSがわからないので対応できず
         fig.savefig('graph.png')
         await message.channel.send(file = discord.File('graph.png'))
-    """
+        """
 
 
 

@@ -1,3 +1,4 @@
+# This Python file uses the following encoding: utf-8
 # インストールした discord.py を読み込む
 import discord
 import datetime
@@ -37,7 +38,8 @@ async def on_message(message):
         return
     # 「/kabu (カブ価）」と発言したら発言者とカブ価を記録する処理
     if '/kabu' in message.content :
-        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        #conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        conn = psycopg2.connect("dbname = test_atsumori")#試験用
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         d = {}
         ampm = ''
@@ -45,7 +47,7 @@ async def on_message(message):
             ampm = 'AM'
         else :
             ampm = 'PM'
-        sql = "SELECT name,val FROM kabu WHERE date = '"+datetime.datetime.now().strftime('%Y/%m/%d')+ampm+"';"
+        sql = "SELECT name,val FROM kabu WHERE date = '"+datetime.date.today()+"' AND ampm = '"+ampm+''";"
         cur.execute(sql)
         d = dict(cur.fetchall())
         num = int(re.sub("\\D","",message.content))

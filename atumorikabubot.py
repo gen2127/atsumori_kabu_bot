@@ -37,8 +37,8 @@ async def on_message(message):
         return
     # 「/kabu (カブ価）」と発言したら発言者とカブ価を記録する処理
     if '/kabu' in message.content :
-        #conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-        conn = psycopg2.connect("dbname = test_atsumori")#試験用
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        #conn = psycopg2.connect("dbname = test_atsumori")#試験用
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         d = {}
         ampm = ''

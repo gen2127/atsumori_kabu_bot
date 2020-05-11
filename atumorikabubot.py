@@ -7,9 +7,9 @@ from tabulate import tabulate
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import os
-import pickle
 import psycopg2
 import psycopg2.extras
+from kabu_judge import kabu_judge 
 
 fontprop = FontProperties(fname='./fonts/NotoSansCJKjp-Medium.otf', size=10)
 
@@ -17,17 +17,13 @@ fontprop = FontProperties(fname='./fonts/NotoSansCJKjp-Medium.otf', size=10)
 TOKEN = os.environ['DISCORD_BOT_ATSUMORIKABU_TOKEN']
 
 DATABASE_URL = os.environ['DATABASE_URL']
+
 # 接続に必要なオブジェクトを生成
 client = discord.Client()
-
-datapath = 'data.pickle'
 
 # 起動時に動作する処理
 @client.event
 async def on_ready():
-    # カブ価データを読み込む
-    global d
-
     # 起動したらターミナルにログイン通知が表示される
     print('ログインしました')
 
@@ -101,7 +97,35 @@ async def on_message(message):
         cur.close()
         conn.close()
 
+    if '/judge' in message.content :
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        #conn = psycopg2.connect("dbname = test_atsumori")#試験用
+        cur = conn.cursor()
+        
+        today = datetime.date.today()
+        weekday = (today.weekday() + 1) % 7
+        sunday = today - datetime.timedelta(days=weekday)
 
+        sql = "SELECT name FROM kabu WHERE date BETWEEN '"+str(sunday)+"' AND '"+str(today)+"';"
+        cur.execute(sql)
+        namelist = set(cur.fetchall())
+
+        weekdays = {'Mon':'月曜', 'Tue':'火曜', 'Wed':'水曜', 'Thu':'木曜', 'Fri':'金曜', 'Sat':'土曜'}
+        result = ''
+        for name in namelist:
+            sql = "SELECT val,weekday,ampm FROM kabu WHERE name = '" + name[0] + "' AND date BETWEEN '"+str(sunday)+"' AND '"+str(today)+"';"
+            cur.execute(sql)
+            data = cur.fetchall()
+            prices = {'名前' : name[0]}
+            for d in data:
+                if(d[1] == 'Sun'):
+                    prices['日曜'] = d[0]
+                else:
+                    prices[weekdays[d[1]] + d[2]] = d[0]
+            result += kabu_judge(prices).judge() + '\n'
+        
+        await message.channel.send(result)
+        
 
 # Botの起動とDiscordサーバーへの接続
 client.run(TOKEN)

@@ -90,7 +90,7 @@ async def on_message(message):
         fig = plt.figure()
         for i in list(d_graph.keys()) :
             plt.plot(list(d_graph[i].keys()),list(d_graph[i].values()),label = i)
-        plt.legend(prop=fontprop) # おそらく日本語で文字化けするがサーバのOSがわからないので対応できず
+        plt.legend(prop=fontprop)
         fig.savefig('graph.png')
         await message.channel.send(file = discord.File('graph.png'))
         conn.commit()

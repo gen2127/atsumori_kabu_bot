@@ -5,10 +5,13 @@ import datetime
 import re
 from tabulate import tabulate
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 import os
 import pickle
 import psycopg2
 import psycopg2.extras
+
+fontprop = FontProperties(fname='./fonts/NotoSansCJKjp-Medium.otf', size=10)
 
 # 自分のBotのアクセストークンに置き換えてください
 TOKEN = os.environ['DISCORD_BOT_ATSUMORIKABU_TOKEN']
@@ -37,8 +40,8 @@ async def on_message(message):
         return
     # 「/kabu (カブ価）」と発言したら発言者とカブ価を記録する処理
     if '/kabu' in message.content :
-        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-        #conn = psycopg2.connect("dbname = test_atsumori")#試験用
+        #conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        conn = psycopg2.connect("dbname = test_atsumori")#試験用
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         d = {}
         ampm = ''
@@ -68,25 +71,35 @@ async def on_message(message):
         conn.close()
     print(d)
     if '/graph' in message.content :
-        await message.channel.send('test')
-        """
-        days = list(d.keys())
+        #conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        conn = psycopg2.connect("dbname = test_atsumori")#試験用
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        days = [datetime.date.today()-datetime.timedelta(days=(datetime.date.today().weekday()-6)%7-i) for i in range((datetime.date.today().weekday()-6)%7+1)]
         d_graph = {}
         for i in days :
-            names = list(d[i].keys())
-            for j in names :
-                if j not in d_graph :
-                    d_graph.setdefault(j,{})
-                if i not in d_graph[j] :
-                    d_graph[j].setdefault(i,d[i][j])
-                d_graph[j][i] = d[i][j]
+            for ampm in ['AM','PM'] :
+                sql = "SELECT name FROM kabu WHERE date = '"+str(i)+"' AND ampm = '"+ampm+"';"
+                cur.execute(sql)
+                names = cur.fetchall()
+                for j in names :
+                    sql = "SELECT val FROM kabu WHERE date = '"+str(i)+"' AND ampm = '"+ampm+"' AND name = '"+j[0]+"';"
+                    cur.execute(sql)
+                    val = cur.fetchall()
+                    val = int(val[0][0])
+                    if j[0] not in d_graph :
+                        d_graph.setdefault(j[0],{})
+                    if str(i)+ampm not in d_graph[j[0]] :
+                        d_graph[j[0]].setdefault(str(i)+ampm,val)
+                    d_graph[j[0]][str(i)+ampm] = val
         fig = plt.figure()
         for i in list(d_graph.keys()) :
             plt.plot(list(d_graph[i].keys()),list(d_graph[i].values()),label = i)
-        plt.legend() # おそらく日本語で文字化けするがサーバのOSがわからないので対応できず
+        plt.legend(prop=fontprop) # おそらく日本語で文字化けするがサーバのOSがわからないので対応できず
         fig.savefig('graph.png')
         await message.channel.send(file = discord.File('graph.png'))
-        """
+        conn.commit()
+        cur.close()
+        conn.close()
 
 
 

@@ -40,8 +40,8 @@ async def on_message(message):
         return
     # 「/kabu (カブ価）」と発言したら発言者とカブ価を記録する処理
     if '/kabu' in message.content :
-        #conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-        conn = psycopg2.connect("dbname = test_atsumori")#試験用
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        #conn = psycopg2.connect("dbname = test_atsumori")#試験用
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         d = {}
         ampm = ''
@@ -71,8 +71,8 @@ async def on_message(message):
         conn.close()
     print(d)
     if '/graph' in message.content :
-        #conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-        conn = psycopg2.connect("dbname = test_atsumori")#試験用
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        #conn = psycopg2.connect("dbname = test_atsumori")#試験用
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         days = [datetime.date.today()-datetime.timedelta(days=(datetime.date.today().weekday()-6)%7-i) for i in range((datetime.date.today().weekday()-6)%7+1)]
         d_graph = {}

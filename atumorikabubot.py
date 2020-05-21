@@ -10,6 +10,7 @@ import os
 import psycopg2
 import psycopg2.extras
 from kabu_judge import kabu_judge 
+import csv
 
 fontprop = FontProperties(fname='./fonts/NotoSansCJKjp-Medium.otf', size=10)
 
@@ -125,6 +126,44 @@ async def on_message(message):
             result += kabu_judge(prices).judge() + '\n'
         
         await message.channel.send(result)
+        conn.commit()
+        cur.close()
+        conn.close()        
+    
+    if message.content == '/csv' :   
+        filename = "log.csv"
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        #conn = psycopg2.connect("dbname = test_atsumori")#試験用
+        cur = conn.cursor()
+
+        today = datetime.date.today()
+        weekday = (today.weekday() + 1) % 7
+        sunday = today - datetime.timedelta(days=weekday)
+
+        cur.execute("SELECT * FROM kabu WHERE date BETWEEN '"+str(sunday)+"' AND '"+str(today)+"';")
+        with open(filename, 'w', encoding="utf_8_sig") as f:
+            writer = csv.writer(f, lineterminator='\n') # 改行コード（\n）を指定しておく
+            writer.writerows(cur.fetchall())
+
+        await message.channel.send(file = discord.File(filename))
+        conn.commit()
+        cur.close()
+        conn.close() 
+
+    if message.content == '/csvall' :
+        filename = "alllog.csv"
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        #conn = psycopg2.connect("dbname = test_atsumori")#試験用
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM kabu;")
+        with open(filename, 'w', encoding="utf_8_sig") as f:
+            writer = csv.writer(f, lineterminator='\n') # 改行コード（\n）を指定しておく
+            writer.writerows(cur.fetchall())
+
+        await message.channel.send(file = discord.File(filename))
+        conn.commit()
+        cur.close()
+        conn.close()             
         
 
 # Botの起動とDiscordサーバーへの接続
